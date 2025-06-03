@@ -4,6 +4,9 @@ use crate::{Error, Result, chunk_types::ChunkType};
 use std::fmt;
 use std::str::FromStr;
 
+/// A PNG container as described by the PNG spec
+/// http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
+#[derive(Debug)]
 pub struct Png {
     chunks: Vec<Chunk>,
 }
