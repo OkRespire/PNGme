@@ -21,7 +21,13 @@ impl Png {
 
     /// Appends a chunk to the end of this `Png` file's `Chunk` list.
     pub fn append_chunk(&mut self, new_chunk: Chunk) {
-        self.chunks.push(new_chunk);
+        let iend_pos = self
+            .chunks
+            .iter()
+            .position(|c| c.chunk_type().eq(&ChunkType::new(b"IEND")))
+            .expect("IEND must exist");
+
+        self.chunks.insert(iend_pos, new_chunk);
     }
 
     /// Searches for a `Chunk` with the specified `chunk_type` and removes the first
@@ -118,7 +124,7 @@ impl TryFrom<&[u8]> for Png {
 
 impl fmt::Display for Png {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Header: {:?}", Self::STANDARD_HEADER)?;
+        write!(f, "Header: {:?}\n", Self::STANDARD_HEADER)?;
         for (i, chunk) in self.chunks.iter().enumerate() {
             write!(f, "Chunk: {}\n{}", i + 1, chunk)?;
         }

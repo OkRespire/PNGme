@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[command(name = "pngme", version, about = "Hides messages in PNG files")]
 pub struct Args {
     #[command(subcommand)]
-    commands: PngMeArgs,
+    pub commands: PngMeArgs,
 }
 
 #[derive(Subcommand, Debug)]
@@ -40,4 +40,3 @@ pub struct RemoveArgs {
 pub struct PrintArgs {
     pub file_path: PathBuf,
 }
-

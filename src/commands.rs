@@ -1,33 +1,38 @@
-use anyhow::{Error, bail};
+use crate::args::{DecodeArgs, EncodeArgs, PrintArgs, RemoveArgs};
 use std::fs;
+use std::path::PathBuf;
 
+use crate::Result;
 use crate::chunk::Chunk;
-use crate::chunk_types::ChunkType;
-use crate::png::Png;
-use crate::{Error, Result};
+use crate::{chunk_types::ChunkType, png::Png};
 use std::convert::TryFrom;
 use std::str::FromStr;
 
 pub struct Commands;
 
 impl Commands {
-    pub fn encode(&self, args: EncodeArgs) -> Result<(), Error> {
+    pub fn new() -> Self {
+        Commands {}
+    }
+    pub fn encode(&self, args: EncodeArgs) -> Result<()> {
         println!(
             "Encoding message '{}' into {:?}",
             args.message, args.file_path
         );
 
-        let png_file = self.open_as_png(args.file_path)?;
+        let file_path = args.file_path;
 
-        let new_chunk_type = ChunkType::from_str(args.chunktype)?;
+        let mut png_file = self.open_as_png(&file_path)?;
+
+        let new_chunk_type = ChunkType::from_str(&args.chunk_type)?;
 
         let byte_msg = args.message.as_bytes();
 
-        let new_chunk = Chunk::new(new_chunk_type, byte_msg);
+        let new_chunk = Chunk::new(new_chunk_type, byte_msg.to_vec());
 
         png_file.append_chunk(new_chunk);
 
-        let output_path = args.output_file.as_ref().unwrap_or(&args.file_path);
+        let output_path = args.output_file.as_ref().unwrap_or(&file_path);
         fs::write(output_path, png_file.as_bytes())?;
 
         println!("Message successfully encoded into {:?}", output_path);
@@ -35,53 +40,61 @@ impl Commands {
         Ok(())
     }
 
-    pub fn decode(&self, args: DecodeArgs) -> Result<(), Error> {
+    pub fn decode(&self, args: DecodeArgs) -> Result<()> {
         println!("Decoding message from {:?}", args.file_path);
 
-        let png_file = self.open_as_png(args.file_path)?;
+        let file_path = args.file_path;
+        let png_file = self.open_as_png(&file_path)?;
 
-        if !png_file.chunk_by_type(&args.message) {
-            bail!(Error("Chunk Type does not exist".into()));
+        if png_file.chunk_by_type(&args.chunk_type).is_none() {
+            return Err("Chunk type not found".into());
         }
 
-        let chunk = png_file.chunk_by_type(&args.message)?;
+        let chunk = png_file.chunk_by_type(&args.chunk_type).unwrap();
 
-        println!("Message = {}", chunk.data_as_string());
+        println!("Message = {:?}", chunk.data_as_string().unwrap());
 
         Ok(())
     }
 
-    pub fn remove(&self, args: RemoveArgs) -> Result<(), Error> {
+    pub fn remove(&self, args: RemoveArgs) -> Result<()> {
         println!(
             "Removing chunk {} from {:?}",
             args.chunk_type, args.file_path
         );
 
-        let png_file = self.open_as_png(args.file_path)?;
+        let file_path = args.file_path;
+        let mut png_file = self.open_as_png(&file_path)?;
 
-        if !png_file.chunk_by_type(&args.message) {
-            bail!(Error("Chunk Type does not exist".into()));
+        if !png_file.chunk_by_type(&args.chunk_type).is_none() {
+            return Err("Chunk type not found".into());
         }
 
-        png_file.remove_first_chunk(&args.chunk_type);
+        png_file.remove_first_chunk(&args.chunk_type)?;
 
         Ok(())
     }
 
-    pub fn print(&self, args: PrintArgs) -> Result<(), Error> {
-        // Your print logic here
+    pub fn print(&self, args: PrintArgs) -> Result<()> {
         println!("Printing chunks from {:?}", args.file_path);
+
+        let file_path = args.file_path;
+        let png_file = self.open_as_png(&file_path)?;
+
+        println!("{}", png_file);
+
         Ok(())
     }
 
     /// Helper function to make sure that the file is opened as a png file
-    fn open_as_png(&self, file_path: PathBuf) -> Result<Png, Error> {
-        if !fs::exists(args.file_path) {
-            bail!(Error("File does not exist".into()));
+    fn open_as_png(&self, file_path: &PathBuf) -> Result<Png> {
+        if fs::exists(&file_path).is_err() {
+            return Err("File does not exist".into());
         }
 
         let raw_file = fs::read(file_path)?;
+        let u8_raw_file: &[u8] = &raw_file;
 
-        Png::try_from(raw_file)
+        Ok(Png::try_from(u8_raw_file)?)
     }
 }
