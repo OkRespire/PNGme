@@ -7,3 +7,13 @@ edition = "2024"
 clap = {version = "4.5.39", features = ["derive"]}
 crc = "3.3.0"
 fmt = "0.1.0"
+
+
+[package]
+path = "src/lib.rs"
+
+[[bin]]
+name="pngme"
+path="src/main.rs"
+
+
