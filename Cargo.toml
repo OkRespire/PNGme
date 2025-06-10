@@ -9,7 +9,7 @@ crc = "3.3.0"
 fmt = "0.1.0"
 
 
-[package]
+[lib]
 path = "src/lib.rs"
 
 [[bin]]

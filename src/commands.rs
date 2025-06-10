@@ -14,7 +14,7 @@ impl Commands {
     pub fn new() -> Self {
         Commands {}
     }
-    pub fn encode(&self, args: EncodeArgs) -> Result<()> {
+    pub fn encode(&self, args: EncodeArgs) -> Result<String> {
         println!(
             "Encoding message '{}' into {:?}",
             args.message, args.file_path
@@ -35,12 +35,13 @@ impl Commands {
         let output_path = args.output_file.as_ref().unwrap_or(&file_path);
         fs::write(output_path, png_file.as_bytes())?;
 
-        println!("Message successfully encoded into {:?}", output_path);
-
-        Ok(())
+        Ok(format!(
+            "Message successfully encoded into {:?}",
+            output_path,
+        ))
     }
 
-    pub fn decode(&self, args: DecodeArgs) -> Result<()> {
+    pub fn decode(&self, args: DecodeArgs) -> Result<String> {
         println!("Decoding message from {:?}", args.file_path);
 
         let file_path = args.file_path;
@@ -52,12 +53,10 @@ impl Commands {
 
         let chunk = png_file.chunk_by_type(&args.chunk_type).unwrap();
 
-        println!("Message = {:?}", chunk.data_as_string().unwrap());
-
-        Ok(())
+        Ok(format!("Message = {:?}", chunk.data_as_string().unwrap()))
     }
 
-    pub fn remove(&self, args: RemoveArgs) -> Result<()> {
+    pub fn remove(&self, args: RemoveArgs) -> Result<String> {
         println!(
             "Removing chunk {} from {:?}",
             args.chunk_type, args.file_path
@@ -72,18 +71,19 @@ impl Commands {
 
         png_file.remove_first_chunk(&args.chunk_type)?;
 
-        Ok(())
+        Ok(format!(
+            "{}'s message successfully removed!",
+            args.chunk_type
+        ))
     }
 
-    pub fn print(&self, args: PrintArgs) -> Result<()> {
+    pub fn print(&self, args: PrintArgs) -> Result<String> {
         println!("Printing chunks from {:?}", args.file_path);
 
         let file_path = args.file_path;
         let png_file = self.open_as_png(&file_path)?;
 
-        println!("{}", png_file);
-
-        Ok(())
+        Ok(format!("{}", png_file))
     }
 
     /// Helper function to make sure that the file is opened as a png file
