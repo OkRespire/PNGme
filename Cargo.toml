@@ -12,6 +12,13 @@ fmt = "0.1.0"
 [lib]
 path = "src/lib.rs"
 
+[workspace]
+members = [
+    ".",
+    "PNGme-gui/src-tauri"
+]
+
+
 [[bin]]
 name="pngme"
 path="src/main.rs"

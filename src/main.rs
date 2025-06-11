@@ -1,8 +1,8 @@
-use PNGme::{
+use clap::Parser;
+use pngme::{
     Commands, Result,
     args::{Args, PngMeArgs},
 };
-use clap::Parser;
 
 fn main() -> Result<()> {
     let args = Args::parse();
